@@ -1,0 +1,239 @@
+--// variables
+local replicated_storage = game:GetService("ReplicatedStorage")
+local run_service = game:GetService("RunService")
+local players = game:GetService("Players")
+local uis = game:GetService("UserInputService")
+
+local actions = replicated_storage:WaitForChild("Events").Player.Actions
+
+local plr = players.LocalPlayer
+local char = plr.Character
+
+local camera = workspace.CurrentCamera
+
+local function fireserver(name)
+    replicated_storage.Events.Player.Actions:FireServer(name)
+end
+
+--// ui lib
+local tonyhub = loadstring(game:HttpGet("https://raw.githubusercontent.com/Stebulous/solaris-ui-lib/main/source.lua"))()
+local window = tonyhub:New({Name = "Tony's Hub", FolderToSave = "tonys hub stuff"})
+
+--// general tab
+local fov = false
+local fov_val = 70
+
+local general_tab = window:Tab("General") 
+local general_section = general_tab:Section("Features")
+
+local fov_toggle = general_section:Toggle("Field Of View", false, "Toggle", function(t)
+	fov = t
+end)
+
+local fov_slider = general_section:Slider("", 60, 90, 70, 1,"Slider", function(t)
+	fov_val = t
+end)
+
+general_section:Textbox("FPS Cap", true, function(t)
+	setfpscap(tonumber(t))
+end)
+
+--// hbe tab
+local hitbox_extender = false
+local ball_size = 1.32
+local auto_guard = false
+
+local hbe_tab = window:Tab("Hitbox Extender") 
+local hbe_section = hbe_tab:Section("Features")
+
+local hbe_toggle = hbe_section:Toggle("Hitbox Extender", false, "Toggle", function(t)
+	hitbox_extender = t
+end)
+
+hbe_section:Textbox("Ball Size", true, function(t)
+	local number = tonumber(t)
+
+	if number > 8 then
+		ball_size = 8
+	else
+		ball_size = number
+	end
+end)
+
+local autoguard_toggle = hbe_section:Toggle("Auto Guard", false, "Toggle", function(t)
+	auto_guard = t
+end)
+
+--// speed tab
+local super_speed = false
+local speed = 1
+
+local speed_tab = window:Tab("Speed") 
+local speed_section = speed_tab:Section("Features")
+
+local bump_toggle = speed_section:Toggle("Super Speed", false, "Toggle", function(t)
+	super_speed = t
+end)
+
+local speed_slider = speed_section:Slider("Speed", 1, 10, 1, 0.5,"Slider", function(t)
+	speed = t
+end)
+
+--// bump disabler tab
+local no_bump = false
+local no_sit = nil
+local no_ankles = nil
+
+local bump_tab = window:Tab("Bump Disabler") 
+local bump_section = bump_tab:Section("Features")
+
+local bump_toggle = bump_section:Toggle("No Bump", false, "Toggle", function(t)
+	no_bump = t
+end)
+
+local sit_toggle = bump_section:Toggle("No Sit", false, "Toggle", function(t)
+	if t then
+		for _, c in pairs(getconnections(actions.OnClientEvent)) do
+			no_sit = "NoFall"
+
+			setconstant(c.Function, table.find(getconstants(c.Function), "Fall"), no_sit)
+		end
+	elseif not t and no_sit == "NoFall" then
+		for _, c in pairs(getconnections(actions.OnClientEvent)) do
+			no_sit = "NoFall"
+
+			setconstant(c.Function, table.find(getconstants(c.Function), no_sit), "Fall")
+		end
+	end
+end)
+
+local ankles_toggle = bump_section:Toggle("No Ankles", false, "Toggle", function(t)
+	if t then
+		for _, c in pairs(getconnections(actions.OnClientEvent)) do
+			no_ankles = "NoAnkles"
+
+			setconstant(c.Function, table.find(getconstants(c.Function), "Ankles"), no_ankles)
+		end
+	elseif not t and no_sit == "NoAnkles" then
+		for _, c in pairs(getconnections(actions.OnClientEvent)) do
+			setconstant(c.Function, table.find(getconstants(c.Function), no_ankles), "Ankles")
+		end
+	end
+end)
+
+--// extra tab
+local default_handles =  plr.Info.Stats.Handles.Value
+local aimbot = false
+
+local extra_tab = window:Tab("Extra")
+local extra_section = extra_tab:Section("Features")
+    
+extra_section:Button("Remove Name", function()
+    plr.Character.HumanoidRootPart.nameTag:ClearAllChildren()
+end)
+
+extra_section:Button("Remove Out of Bounds", function()
+	for i = 1, 6 do
+		workspace.Stuff.Courts["Court_"..tostring(i)].Court.oob:Destroy()
+	end
+end)
+
+extra_section:Button("Force 0", function()
+    replicated_storage.Events.Player.Ball:InvokeServer("shotType", {["Ac"] = {["Dunk"] = false,["Posting"] = false,["ShootingEnabled"] = true,["NoMov"] = false,["PickupBall"] = false,["Shooting"] = true,["Blocking"] = false,["catchPass"] = false,["Dead"] = false,["DribbleAnim"] = false,["Falling"] = false,["Lateral"] = false,["Handles"] = false,["Pivot"] = false,["walkOnCourt"] = false,["HideChars"] = false,["NoRun"] = false,["Running"] = false,["PumpFake"] = false,["ShotBall"] = false,["Dropball"] = false,["brokenAnkles"] = false,["Steal"] = false,["Rebound"] = false,["Guarding"] = false,["PostMove"] = false,["hasBall"] = true,["Pick"] = false,["hopStep"] = false,["offDribble"] = false,["Passing"] = false,["CrossOver"] = false,["withBallMovement"] = false},["Con"] = "reg",["Co"] = {["shift"] = false,["shiftHold"] = false,["Alley"] = false,["Passing"] = false},["vel"] = -math.huge})
+	replicated_storage.Events.Player.Actions:FireServer("addPower", {})
+	replicated_storage.Events.Player.Ball:InvokeServer("stop")
+	fireserver("Pump")
+end)
+
+local handles_toggle = extra_section:Toggle("Unlock All Dribbles", false, "Toggle", function(t)
+    if t then
+        plr.Info.Stats.Handles.Value = 9e9
+    else
+        plr.Info.Stats.Handles.Value = default_handles
+    end
+end)
+
+local aimbot_toggle = extra_section:Toggle("Aimbot", false, "Toggle", function(t)
+    aimbot = t
+end)
+
+local deltatime
+
+--// main loop
+run_service.Heartbeat:Connect(function(dt)
+    deltatime = dt
+    local char = plr.Character
+    
+	if no_bump then
+		if plr.Backpack.Actions.Pushback.Value then
+			plr.Backpack.Actions.Pushback.Value = false
+			for i, v in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
+				if v.Animation.AnimationId == "rbxassetid://4864953983" then
+					v:Stop()
+				end
+			end
+			for i, v in pairs(char:GetDescendants()) do
+				if v:IsA("BodyMover") then
+					v:Destroy()
+				end
+			end
+		end
+	end
+
+	if super_speed then
+		local hum = char.Humanoid
+		if hum.MoveDirection.Magnitude > 0 then
+			char:TranslateBy(hum.MoveDirection * speed * dt * 10)
+		else
+			char:TranslateBy(hum.MoveDirection * dt * 10)
+		end
+	end
+
+	if fov then
+		camera.FieldOfView = fov_val
+	else
+		camera.FieldOfView = 70
+	end
+
+	if hitbox_extender then
+		for _, ball in pairs(workspace.Balls:GetChildren()) do
+			if not ball:FindFirstChild("Clone") then
+				local clone = ball:Clone()
+				clone.Parent = ball
+				clone.Name = "Clone"
+				clone.CanCollide = false
+				clone.Anchored = true
+			else
+				if char.UpperTorso:FindFirstChild("Ball") then
+					ball:FindFirstChild("Clone").CFrame = ball.CFrame
+					ball.Transparency = 1
+					ball.Size = Vector3.new(1.32, 1.32, 1.32)
+				else
+					ball:FindFirstChild("Clone").CFrame = ball.CFrame
+					ball.Transparency = 1
+					ball.Size = Vector3.new(ball_size, ball_size, ball_size)
+				end
+			end
+		end
+	end
+	
+	if auto_guard then
+	    local root = char.HumanoidRootPart
+	    for _, ball in pairs(workspace.Balls:GetChildren()) do
+            if ball.GameBall.Court.Value == plr.Info.Game.Team.Court.Value and ball.Blockable.Value then
+                root.CFrame = CFrame.new(ball.Position.X, ball.Position.Y, ball.Position.Z)
+                fireserver("block")
+                fireserver("rebound")
+            end
+        end
+    end
+end)
+
+uis.InputBegan:Connect(function(key, typing)
+    if typing then return end
+    
+    if key.KeyCode == Enum.KeyCode.E and aimbot then
+        task.wait(0.49+game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()/1000-deltatime)
+        keyrelease(0x45)
+    end
+end)
