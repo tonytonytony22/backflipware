@@ -130,9 +130,9 @@ local Old; Old = hookmetamethod(game, "__namecall", newcclosure(function(self, .
 
 	if Method == "FireServer" and Args[1] == "UpdateMousePos" and Target ~= nil then
 		if Target.Humanoid.FloorMaterial == Enum.Material.Air then
-			Args[2] = Target.HumanoidRootPart.Position + Velocity  * 0.121
+			Args[2] = Target.HumanoidRootPart.Position + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z)  * 0.121
 		else
-			Args[2] = Target.Head.Position + Velocity * 0.121
+			Args[2] = Target.Head.Position + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z) * 0.121
 		end
 		return Old(self, unpack(Args))  
 	end
