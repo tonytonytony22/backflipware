@@ -13,12 +13,7 @@ local Text = Drawing.new("Text"); Text.Visible = true; Text.Position = Vector2.n
 local Text2 = Drawing.new("Text"); Text2.Visible = true; Text2.Position = Vector2.new(1920/2, 50); Text2.Text = "Velocity: false"; Text2.Size = 30; Text2.Center = true; Text2.Outline = true; Text2.OutlineColor = Pink
 local Text3 = Drawing.new("Text"); Text3.Visible = true; Text3.Position = Vector2.new(1920/2, 80); Text3.Text = "Speed: false"; Text3.Size = 30; Text3.Center = true; Text3.Outline = true; Text3.OutlineColor = Pink
 
-
-
-local Tracer = Drawing.new("Line")
-Tracer.Thickness = 4
-Tracer.Visible = true
-Tracer.Color = Pink
+local Tracer = Drawing.new("Line"); Tracer.Thickness = 4; Tracer.Visible = true; Tracer.Color = Pink
 
 local function ClosestPlayerToMouse(Part)
 	for _, Player in pairs(Players:GetPlayers()) do
@@ -124,7 +119,7 @@ RunService.Heartbeat:Connect(function(Deltatime)
 		end
 	end
 end)
-
+--[[
 local Old; Old = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
 	local Args, Method = {...}, getnamecallmethod()
 
@@ -138,4 +133,17 @@ local Old; Old = hookmetamethod(game, "__namecall", newcclosure(function(self, .
 	end
 
 	return Old(self, ...)
+end))
+]]
+
+local Old; Old = hookmetamethod(game, "__index", newcclosure(function(Self, Key)
+    if not checkcaller() and Self:IsA("Mouse") and Key == "Hit" and Target ~= nil then
+        if Target.Humanoid.FloorMaterial == Enum.Material.Air then
+            return Target.HumanoidRootPart.CFrame + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z)  * 0.121
+        else
+            return Target.Head.CFrame + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z) * 0.121
+        end
+    end
+    
+    return Old(Self, Key)
 end))
