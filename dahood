@@ -12,6 +12,8 @@ local Pink = Color3.fromRGB(180, 34, 180)
 local Text = Drawing.new("Text"); Text.Visible = true; Text.Position = Vector2.new(1920/2, 20); Text.Text = "Lock: nil"; Text.Size = 30; Text.Center = true;Text.Outline = true; Text.OutlineColor = Pink
 local Text2 = Drawing.new("Text"); Text2.Visible = true; Text2.Position = Vector2.new(1920/2, 50); Text2.Text = "Velocity: false"; Text2.Size = 30; Text2.Center = true; Text2.Outline = true; Text2.OutlineColor = Pink
 local Text3 = Drawing.new("Text"); Text3.Visible = true; Text3.Position = Vector2.new(1920/2, 80); Text3.Text = "Speed: false"; Text3.Size = 30; Text3.Center = true; Text3.Outline = true; Text3.OutlineColor = Pink
+local Text4 = Drawing.new("Text"); Text4.Visible = true; Text4.Position = Vector2.new(1920/2, 110); Text4.Text = "Spin: false"; Text4.Size = 30; Text4.Center = true; Text4.Outline = true; Text4.OutlineColor = Pink
+
 
 local Tracer = Drawing.new("Line"); Tracer.Thickness = 4; Tracer.Visible = true; Tracer.Color = Pink
 
@@ -33,6 +35,7 @@ end
 local Target
 local Speed = false
 local SpoofVelocity = false
+local Spin = false
 
 local End = Instance.new("Part"); End.Parent = workspace; End.CanCollide = false; End.Transparency = 1; End.Anchored = true; End.Size = Vector3.one
 Instance.new("Attachment").Parent = End
@@ -41,30 +44,33 @@ local Beam = Instance.new("Beam"); Beam.Width0 = 0.2; Beam.Width1 = 0.2; Beam.Co
 UserInputService.InputBegan:Connect(function(Key, Typing)
 	if Typing then return end
 	if Key.KeyCode == Enum.KeyCode.X then
-	    
+
 		if Target == ClosestPlayerToMouse("UpperTorso") then
 			Target = nil
 			Text.Text = "Lock: " .. tostring(Target)
 			Beam.Attachment1 = nil
 		elseif ClosestPlayerToMouse("UpperTorso") == nil then
-		    Target = nil
-		    Beam.Attachment1 = nil
-		    Text.Text = "Lock: " .. tostring(Target)
+			Target = nil
+			Beam.Attachment1 = nil
+			Text.Text = "Lock: " .. tostring(Target)
 		else
 			Target = ClosestPlayerToMouse("UpperTorso")
 			Text.Text = "Lock: " .. tostring(Target)
-			
+
 			if not Target.Head:FindFirstChild("Attachment") then
-			    Instance.new("Attachment").Parent = Target.Head
+				Instance.new("Attachment").Parent = Target.Head
 			end
-	        Beam.Attachment1 = Target.Head.Attachment
+			Beam.Attachment1 = Target.Head.Attachment
 		end
 	elseif Key.KeyCode == Enum.KeyCode.V then
 		Speed  = not Speed
 		Text3.Text = "Speed: " .. tostring(Speed)
 	elseif Key.KeyCode == Enum.KeyCode.C then
-	    SpoofVelocity = not SpoofVelocity
-	    Text2.Text = "Velocity: " .. tostring(SpoofVelocity)
+		SpoofVelocity = not SpoofVelocity
+		Text2.Text = "Velocity: " .. tostring(SpoofVelocity)
+	elseif Key.KeyCode == Enum.KeyCode.Z then
+		Spin = not Spin
+		Text4.Text = "Spin: " .. tostring(Spin)
 	end
 end)
 
@@ -72,16 +78,21 @@ local PreviousPosition = Vector3.zero
 local Velocity
 local RealVelocity
 
+local Degrees = 0
+local Increment = 5
+local Radius = 10
 
 RunService.Heartbeat:Connect(function(Deltatime)
-    local Character = Me.Character
-    local Humanoid = Character.Humanoid.MoveDirection
-    local HumanoidRootPart = Character.HumanoidRootPart
-   
-    for _, Connection in pairs(getconnections(HumanoidRootPart:GetPropertyChangedSignal("CFrame"))) do
+	local Character = Me.Character
+	local Humanoid = Character.Humanoid.MoveDirection
+	local HumanoidRootPart = Character.HumanoidRootPart
+
+	for _, Connection in pairs(getconnections(HumanoidRootPart:GetPropertyChangedSignal("CFrame"))) do
 		Connection:Disable()
 	end
-    
+
+
+
 	if Speed then
 		if Humanoid.Magnitude > 0 then
 			Character:TranslateBy(Humanoid * 10 * Deltatime * 10)
@@ -89,24 +100,24 @@ RunService.Heartbeat:Connect(function(Deltatime)
 			Character:TranslateBy(Humanoid * Deltatime * 10)
 		end
 	end
-    if SpoofVelocity then
-        task.spawn(function()
-            RealVelocity = HumanoidRootPart.Velocity
-            HumanoidRootPart.Velocity = Vector3.new(40, -5, -40)
-            RunService.RenderStepped:Wait()
-            HumanoidRootPart.Velocity = RealVelocity
-            RunService.Heartbeat:Wait()
-        end)
-    end
+	if SpoofVelocity then
+		task.spawn(function()
+			RealVelocity = HumanoidRootPart.Velocity
+			HumanoidRootPart.Velocity = Vector3.new(40, -5, -40)
+			RunService.RenderStepped:Wait()
+			HumanoidRootPart.Velocity = RealVelocity
+			RunService.Heartbeat:Wait()
+		end)
+	end
 
 	if Target == nil then
 		Tracer.Visible = false
 	else
 		local CurrentPosition = Target.HumanoidRootPart.Position
 		Velocity = (CurrentPosition - PreviousPosition) / Deltatime
-		
+
 		End.Position = Target.BodyEffects.MousePos.Value
-		
+
 		local Position, Visible = Camera:WorldToViewportPoint(Target.HumanoidRootPart.Position)
 		if Visible then 
 			Tracer.From = Vector2.new(Mouse.X, Mouse.Y+40)
@@ -117,33 +128,25 @@ RunService.Heartbeat:Connect(function(Deltatime)
 		else
 			Tracer.Visible = false
 		end
+
+		if Spin then
+			Degrees = Degrees + Increment
+
+			HumanoidRootPart.CFrame = CFrame.new(Target.HumanoidRootPart.Position.X + Radius * math.cos(math.rad(Degrees)), Target.HumanoidRootPart.Position.Y + 7, Target.HumanoidRootPart.Position.Z + Radius * math.sin(math.rad(Degrees)))
+		end
 	end
 end)
---[[
-local Old; Old = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-	local Args, Method = {...}, getnamecallmethod()
-
-	if Method == "FireServer" and Args[1] == "UpdateMousePos" and Target ~= nil then
-		if Target.Humanoid.FloorMaterial == Enum.Material.Air then
-			Args[2] = Target.HumanoidRootPart.Position + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z)  * 0.121
-		else
-			Args[2] = Target.Head.Position + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z) * 0.121
-		end
-		return Old(self, unpack(Args))  
-	end
-
-	return Old(self, ...)
-end))
-]]
 
 local Old; Old = hookmetamethod(game, "__index", newcclosure(function(Self, Key)
-    if not checkcaller() and Self:IsA("Mouse") and Key == "Hit" and Target ~= nil then
-        if Target.Humanoid.FloorMaterial == Enum.Material.Air then
-            return Target.HumanoidRootPart.CFrame + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z)  * 0.121
-        else
-            return Target.Head.CFrame + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z) * 0.121
-        end
-    end
-    
-    return Old(Self, Key)
+	if not checkcaller() and Self:IsA("Mouse") and Key == "Hit" and Target ~= nil then
+	    if Spin then
+	        return Target.HumanoidRootPart.CFrame + Vector3.new(Velocity.X, 0, Velocity.Z)  * 0.121
+		elseif Target.Humanoid.FloorMaterial == Enum.Material.Air then
+			return Target.HumanoidRootPart.CFrame + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z)  * 0.121
+		else
+			return Target.Head.CFrame + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z) * 0.121
+		end
+	end
+
+	return Old(Self, Key)
 end))
