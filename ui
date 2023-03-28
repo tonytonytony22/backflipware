@@ -8,6 +8,7 @@ getgenv().inputService = game:GetService"UserInputService"
 getgenv().tweenService = game:GetService"TweenService"
 
 if getgenv().library then
+    if loop then loop:Disconnect() end
     getgenv().library:Unload()
 end
 
