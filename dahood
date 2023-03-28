@@ -92,7 +92,7 @@ RunService.Heartbeat:Connect(function(Deltatime)
     if SpoofVelocity then
         task.spawn(function()
             RealVelocity = HumanoidRootPart.Velocity
-            HumanoidRootPart.Velocity = Vector3.new(20, 20, 20)
+            HumanoidRootPart.Velocity = Vector3.new(40, -5, -40)
             RunService.RenderStepped:Wait()
             HumanoidRootPart.Velocity = RealVelocity
             RunService.Heartbeat:Wait()
