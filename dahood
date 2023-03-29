@@ -1,6 +1,7 @@
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
 
 local Me = Players.LocalPlayer
 local Mouse = Me:GetMouse()
@@ -120,7 +121,7 @@ RunService.Heartbeat:Connect(function(Deltatime)
 
 		local Position, Visible = Camera:WorldToViewportPoint(Target.HumanoidRootPart.Position)
 		if Visible then 
-			Tracer.From = Vector2.new(Mouse.X, Mouse.Y+40)
+			Tracer.From = Vector2.new(Mouse.X, Mouse.Y+GuiService:GetGuiInset().Y)
 			Tracer.To = Vector2.new(Position.X, Position.Y)
 			Tracer.Visible = true
 
