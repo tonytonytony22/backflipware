@@ -4,7 +4,7 @@ Solaris.Name = "Backflipware"
 
 Solaris.Parent = game.CoreGui
 Solaris.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
+syn.protect_gui(Solaris)
 local NotificationHolder = Instance.new("ScreenGui")
 NotificationHolder.Name = "notiHolder"
 NotificationHolder.Parent = game.CoreGui
