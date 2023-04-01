@@ -1,6 +1,7 @@
---// this code give u aim lock !!!! pasted from chat gpt !!!
+--// dis code give u aimlock?? i copied it all from chat gpt
 
 local Prediction = 0.12
+local VelocityAmount = Vector3.new(math.random(-10000, 10000), math.random(-10000, 10000), math.random(-10000, 10000))
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -8,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
 
 local Me = Players.LocalPlayer
+
 local Mouse = Me:GetMouse()
 local Camera = workspace.CurrentCamera
 Camera.FieldOfView = 85
@@ -88,7 +90,7 @@ RunService.Heartbeat:Connect(function(Deltatime)
 	if SpoofVelocity then
 		task.spawn(function()
 			RealVelocity = HumanoidRootPart.Velocity
-			HumanoidRootPart.Velocity = Vector3.new(math.random(-10000, 10000), math.random(-10000, 10000), math.random(-10000, 10000))
+			HumanoidRootPart.Velocity = VelocityAmount
 			RunService.RenderStepped:Wait()
 			HumanoidRootPart.Velocity = RealVelocity
 			RunService.Heartbeat:Wait()
@@ -117,12 +119,11 @@ RunService.Heartbeat:Connect(function(Deltatime)
 	end
 end)
 
-
 local Old; Old = hookmetamethod(game, "__index", newcclosure(function(Self, Key)
 	if not checkcaller() and Self:IsA("Mouse") and Key == "Hit" and Target ~= nil then
 		if Target.Humanoid.FloorMaterial == Enum.Material.Air then
 			if Velocity.Y * Prediction < 0 then
-                return Target.HumanoidRootPart.CFrame + Vector3.new(Velocity.X, 0, Velocity.Z)  * Prediction
+                return Target.LowerTorso.CFrame + Vector3.new(Velocity.X, 0, Velocity.Z)  * Prediction
 			else
 				return Target.HumanoidRootPart.CFrame + Vector3.new(Velocity.X, Velocity.Y/2, Velocity.Z)  * Prediction
 			end
@@ -131,6 +132,17 @@ local Old; Old = hookmetamethod(game, "__index", newcclosure(function(Self, Key)
 		end
 	end
 
+	if tostring(Self) == "UserInputService" then
+		if Key == "KeyboardEnabled" then
+			return false
+		elseif Key == "GamepadEnabled" then
+			return true
+	    elseif Key == "MouseEnabled" then
+	        return false
+	    elseif Key == "TouchEnabled" then
+	        return false
+		end
+	end
 	return Old(Self, Key)
 end))
 
