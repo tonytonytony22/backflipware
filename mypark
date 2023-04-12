@@ -17,7 +17,7 @@ end
 
 --// ui lib
 local tonyhub = loadstring(game:HttpGet("https://raw.githubusercontent.com/tonytonytony22/backflipware/main/editedui"))()
-local window = tonyhub:New({Name = "Backflipware", FolderToSave = "tonys hub stuff"})
+local window = tonyhub:New({Name = "Backflipware", FolderToSave = "Backflipware"})
 
 --// general tab
 local fov = false
@@ -158,6 +158,36 @@ local aimbot_toggle = extra_section:Toggle("Aimbot", false, "Toggle", function(t
 end)
 
 local deltatime
+
+local autojoin_tab = window:Tab("Autojoin") 
+local autojoin_section = autojoin_tab:Section("Features")
+
+local court = nil
+local team = nil
+
+local join_connection
+
+local join_toggle = autojoin_section:Toggle("Join Court", false, "", function(t)
+    if t and team ~= nil and court ~= nil then 
+        join_connection = runservice.Heartbeat:Connect(function()
+            for _, v  in pairs(workspace.Spots["Court_"..tostring(court)]["Team"..tostring(team)]:GetChildren()) do
+                if tostring(v) == "N" and v.OnSpot.Value ~= false then
+                    event:FireServer("Join")
+                end
+            end
+        end)
+    elseif not t and join_connection ~= nil then
+        join_connection:Disconnect()
+    end
+end)
+
+local court_picker = autojoin_section:Dropdown("Court", {"1","2","3","4","5", "6"},"","", function(t)
+    court = t
+end)
+
+local team_picker = autojoin_section:Dropdown("Team", {"1","2"} ,"","", function(t)
+    team = t
+end)
 
 --// main loop
 run_service.Heartbeat:Connect(function(dt)
