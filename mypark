@@ -169,7 +169,7 @@ local join_connection
 
 local join_toggle = autojoin_section:Toggle("Join Court", false, "", function(t)
     if t and team ~= nil and court ~= nil then 
-        join_connection = runservice.Heartbeat:Connect(function()
+        join_connection = runservice.Stepped:Connect(function()
             for _, v  in pairs(workspace.Spots["Court_"..tostring(court)]["Team"..tostring(team)]:GetChildren()) do
                 if tostring(v) == "N" and v.OnSpot.Value ~= false then
                     event:FireServer("Join")
