@@ -3,7 +3,7 @@ local replicated_storage = game:GetService("ReplicatedStorage")
 local run_service = game:GetService("RunService")
 local players = game:GetService("Players")
 local uis = game:GetService("UserInputService")
-
+local settings = settings()
 local actions = replicated_storage:WaitForChild("Events").Player.Actions
 
 local plr = players.LocalPlayer
@@ -124,6 +124,8 @@ end)
 --// extra tab
 local default_handles =  plr.Info.Stats.Handles.Value
 local aimbot = false
+local shotspeed = false
+local shotspeed_speed = 1
 
 local extra_tab = window:Tab("Extra")
 local extra_section = extra_tab:Section("Features")
@@ -157,10 +159,31 @@ local aimbot_toggle = extra_section:Toggle("Aimbot", false, "Toggle", function(t
     aimbot = t
 end)
 
+
+
+extra_section:Textbox("Fake Lag", true, function(t)
+    settings.Network.IncomingReplicationLag = t
+end)
+
+local shotspeed_toggle = extra_section:Toggle("Shot Speed", false, "Toggle", function(t)
+    shotspeed = t
+end)
+
+extra_section:Textbox("Shot Speed Amount", true, function(t)
+    shotspeed_speed = t
+end)
+
+
+
+
 local deltatime
 
 local autojoin_tab = window:Tab("Autojoin") 
 local autojoin_section = autojoin_tab:Section("Features")
+
+autojoin_section:Textbox("Join Player", true, function(t)
+	game:GetService("ReplicatedStorage").Events.Player.HandleTeleport:InvokeServer("Join", {["Name"] = t})
+end)
 
 local court = nil
 local team = nil
@@ -169,10 +192,10 @@ local join_connection
 
 local join_toggle = autojoin_section:Toggle("Join Court", false, "", function(t)
     if t and team ~= nil and court ~= nil then 
-        join_connection = runservice.Stepped:Connect(function()
+        join_connection = run_service.Stepped:Connect(function()
             for _, v  in pairs(workspace.Spots["Court_"..tostring(court)]["Team"..tostring(team)]:GetChildren()) do
                 if tostring(v) == "N" and v.OnSpot.Value ~= false then
-                    event:FireServer("Join")
+                    fireserver("Join")
                 end
             end
         end)
@@ -189,15 +212,18 @@ local team_picker = autojoin_section:Dropdown("Team", {"1","2"} ,"","", function
     team = t
 end)
 
+local anim, anim2 = "rbxassetid://5099677897", "rbxassetid://5463881468"
+
 --// main loop
 run_service.Heartbeat:Connect(function(dt)
     deltatime = dt
     local char = plr.Character
-    
+    local hum = char.Humanoid
+    		
 	if no_bump then
 		if plr.Backpack.Actions.Pushback.Value then
 			plr.Backpack.Actions.Pushback.Value = false
-			for i, v in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
+			for i, v in pairs(hum:GetPlayingAnimationTracks()) do
 				if v.Animation.AnimationId == "rbxassetid://4864953983" then
 					v:Stop()
 				end
@@ -210,8 +236,18 @@ run_service.Heartbeat:Connect(function(dt)
 		end
 	end
 
+    
+
+    if shotspeed then
+        for _, v in pairs(hum:GetPlayingAnimationTracks()) do
+            local animationid = v.Animation.AnimationId
+            if animationid == anim or animationid == anim2 then
+                v:AdjustSpeed(shotspeed_speed)
+            end
+        end
+    end
+
 	if super_speed then
-		local hum = char.Humanoid
 		if hum.MoveDirection.Magnitude > 0 then
 			char:TranslateBy(hum.MoveDirection * speed * dt * 10)
 		else
@@ -246,14 +282,14 @@ run_service.Heartbeat:Connect(function(dt)
 			end
 		end
 	end
-	
+    
 	if auto_guard then
 	    local root = char.HumanoidRootPart
 	    for _, ball in pairs(workspace.Balls:GetChildren()) do
             if ball.GameBall.Court.Value == plr.Info.Game.Team.Court.Value and ball.Blockable.Value then
                 root.CFrame = CFrame.new(ball.Position.X, ball.Position.Y, ball.Position.Z)
                 fireserver("block")
-                fireserver("rebound")
+                fireserver("rebound")   
             end
         end
     end
